@@ -15,19 +15,35 @@
 // ============================================================================
 
 // Inclusão das bibliotecas padrão necessárias para entrada/saída, alocação de memória, manipulação de strings e tempo.
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include <locale.h>
 
 // --- Constantes Globais ---
 // Definem valores fixos para o número de territórios, missões e tamanho máximo de strings, facilitando a manutenção.
+#define NUM_TERRITORIOS 5
+#define TAM_NOME 30
+#define TAM_COR 10
+#define NUM_MISSOES 2
 
 // --- Estrutura de Dados ---
 // Define a estrutura para um território, contendo seu nome, a cor do exército que o domina e o número de tropas.
+struct Territorio {
+    char nome[TAM_NOME];
+    char corExercito[TAM_COR];
+    int numTropas;
+};
 
 // --- Protótipos das Funções ---
 // Declarações antecipadas de todas as funções que serão usadas no programa, organizadas por categoria.
 // Funções de setup e gerenciamento de memória:
+void inicializarTerritorios(struct Territorio* territorios);
 // Funções de interface com o usuário:
 // Funções de lógica principal do jogo:
 // Função utilitária:
+void limparBufferEntrada();
 
 // --- Função Principal (main) ---
 // Função principal que orquestra o fluxo do jogo, chamando as outras funções em ordem.
@@ -38,6 +54,14 @@ int main() {
     // - Aloca a memória para o mapa do mundo e verifica se a alocação foi bem-sucedida.
     // - Preenche os territórios com seus dados iniciais (tropas, donos, etc.).
     // - Define a cor do jogador e sorteia sua missão secreta.
+    
+    // Define o locale para português, permitindo suporte a caracteres acentuados e formatação regional.
+    setlocale(LC_ALL, "Portuguese");
+
+    struct Territorio territorios[NUM_TERRITORIOS];
+    
+    inicializarTerritorios(territorios);
+
 
     // 2. Laço Principal do Jogo (Game Loop):
     // - Roda em um loop 'do-while' que continua até o jogador sair (opção 0) ou vencer.
@@ -52,7 +76,7 @@ int main() {
     // - Ao final do jogo, libera a memória alocada para o mapa para evitar vazamentos de memória.
 
     return 0;
-}
+};
 
 // --- Implementação das Funções ---
 
@@ -63,6 +87,37 @@ int main() {
 // inicializarTerritorios():
 // Preenche os dados iniciais de cada território no mapa (nome, cor do exército, número de tropas).
 // Esta função modifica o mapa passado por referência (ponteiro).
+void inicializarTerritorios(struct Territorio* territorios) {
+    printf("===================================\n\n");
+    printf("Vamos cadastrar os 5 territórios iniciais do nosso mundo.\n\n");
+    for (int i = 0; i < NUM_TERRITORIOS; i++) {
+        printf(" --- Cadastrando território %d --- \n", i + 1);
+        printf("Nome do território: ");
+        fgets(territorios[i].nome, TAM_NOME, stdin);
+        territorios[i].nome[strcspn(territorios[i].nome, "\n")] = '\0';
+
+        printf("Cor do exército (ex: Preto, Amarelo): ");
+        fgets(territorios[i].corExercito, TAM_COR, stdin);
+        territorios[i].corExercito[strcspn(territorios[i].corExercito, "\n")] = '\0';
+
+        printf("Número de tropas: ");
+        scanf("%d", &territorios[i].numTropas);
+        limparBufferEntrada();
+        printf("\n");
+    }
+    // Exibir listagem com os territórios cadastrados
+    printf("\n===================================\n");
+    printf("\n       MAPA DO MUNDO - ESTADO\n");
+    printf("\n===================================\n");
+    
+    for (int i = 0; i < NUM_TERRITORIOS; i++) {
+        printf("Território %d:\n", i + 1);
+        printf("Nome: %s\n", territorios[i].nome);
+        printf("Cor do Exército: %s\n", territorios[i].corExercito);
+        printf("Número de Tropas: %d\n", territorios[i].numTropas);
+        printf("-------------------------\n");
+    }
+};
 
 // liberarMemoria():
 // Libera a memória previamente alocada para o mapa usando free.
@@ -96,3 +151,7 @@ int main() {
 
 // limparBufferEntrada():
 // Função utilitária para limpar o buffer de entrada do teclado (stdin), evitando problemas com leituras consecutivas de scanf e getchar.
+void limparBufferEntrada() {
+  int c;
+  while ((c = getchar()) != '\n' && c != EOF);
+};
