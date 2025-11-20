@@ -39,6 +39,7 @@ struct Territorio {
 // --- Protótipos das Funções ---
 // Declarações antecipadas de todas as funções que serão usadas no programa.
 void inicializarTerritorios(struct Territorio* territorios);
+void exibirMapa(struct Territorio* territorios);
 void faseDeAtaque(struct Territorio* territorios);
 void simularAtaque(struct Territorio* territorios, int atacante, int defensor);
 void limparBufferEntrada();
@@ -51,6 +52,7 @@ int main() {
 
     // Chamada para inicializar o gerador de números aleatórios.
     srand((time(NULL)));
+
     // Aloca um array de estruturas Territorio na pilha (stack), dinamicamente.
     struct Territorio *territorios;
     territorios = (struct Territorio *) calloc(NUM_TERRITORIOS, sizeof(struct Territorio));
@@ -61,7 +63,21 @@ int main() {
     };
     // Chama a função para inicializar os territórios, pedindo ao usuário para cadastrá-los e exibindo o mapa.
     inicializarTerritorios(territorios);
+    
+    int opcao;
+    do {
+        exibirMapa(territorios);
 
+        // Pausa no loop para que o usuário veja a lista de territórios antes de atacar.
+        printf("\nDigite Enter para continuar...");
+        getchar();
+
+        // Chama a fase de ataque para o jogador atacar territórios.
+        faseDeAtaque(territorios);
+    } while (opcao != 0);
+    
+    // Libera a memória alocada dinamicamente antes de encerrar o programa.
+    free(territorios);
 
     return 0;
 };
@@ -87,19 +103,17 @@ void inicializarTerritorios(struct Territorio* territorios) {
         limparBufferEntrada();
         printf("\n");
     }
+};
 
+void exibirMapa(struct Territorio* territorios) {
     // Exibe listagem com os territórios cadastrados
     printf("\n===================================\n");
-    printf("\n       MAPA DO MUNDO - ESTADO\n");
+    printf("\n    MAPA DO MUNDO - ESTADO ATUAL\n");
     printf("\n===================================\n");
     for (int i = 0; i < NUM_TERRITORIOS; i++) {
-        printf("Território %d:\n", i + 1);
-        printf("Nome: %s\n", territorios[i].nome);
-        printf("Cor do Exército: %s\n", territorios[i].corExercito);
-        printf("Número de Tropas: %d\n", territorios[i].numTropas);
-        printf("-------------------------\n");
+        printf("%d. %s (Exército %s, Tropas: %d):\n",i + 1, territorios[i].nome, territorios[i].corExercito, territorios[i].numTropas);
     }
-};
+}
 
 // Gerencia a interface para a ação de ataque, solicitando ao jogador os territórios de origem e destino.
 void faseDeAtaque(struct Territorio* territorios) {
@@ -108,12 +122,13 @@ void faseDeAtaque(struct Territorio* territorios) {
     printf("\n--- Fase de ataque ---\n");
     printf("Digite o território atacante (1 a 5, ou 0 para sair): ");
     scanf("%d", &territorioAtacante);
+
     limparBufferEntrada();
-    
-    // Valida se o atacante quer sair
+
     if (territorioAtacante == 0) {
-        printf("Saindo da fase de ataque.\n");
-        return;
+        free(territorios);
+        printf("Jogo encerrado e memória liberada. Até a próxima!\n");
+        exit(0);
     }
     
     // Valida se o território atacante é válido
@@ -146,39 +161,37 @@ void faseDeAtaque(struct Territorio* territorios) {
 // Realiza validações, rola os dados, compara os resultados e atualiza o número de tropas.
 // Se um território for conquistado, atualiza seu dono e move uma tropa.
 void simularAtaque(struct Territorio* territorios, int atacante, int defensor) {
-    // Gera números aleatórios para simular dados de batalha (1 a 6), eliminando a possibilidade de empate
-    int dadoAtaque = 0;
-    int dadoDefesa = 0;
-    do {
-        int dadoAtaque = rand() % 6 + 1;
-        int dadoDefesa = rand() % 6 + 1;
-
-    } while (dadoAtaque == dadoDefesa);
+    // Gera números aleatórios para simular dados de batalha (1 a 6)
+    int dadoAtaque = rand() % 6 + 1;
+    int dadoDefesa = rand() % 6 + 1;
     
     printf("\n--- RESULTADO DA BATALHA ---\n");
-    printf("Atacante: %s (Dado: %d)\n", territorios[atacante].nome, dadoAtaque);
-    printf("Defensor: %s (Dado: %d)\n", territorios[defensor].nome, dadoDefesa);
-    
+    printf("O atacante %s rolou um dado e tirou: %d\n", territorios[atacante].nome, dadoAtaque);
+    printf("O defensor %s rolou um dado e tirou: %d\n", territorios[defensor].nome, dadoDefesa);
+
     // Compara os dados
     if (dadoAtaque >= dadoDefesa) {
-        printf("\n>>> ATACANTE VENCEU! <<<\n");
         territorios[defensor].numTropas--;
-        printf("%s perdeu 1 tropa. Tropas restantes: %d\n", territorios[defensor].nome, territorios[defensor].numTropas);
-        
+        printf("VITÓRIA DO ATAQUE!!! O defensor perdeu 1 tropa. Tropas restantes: %d\n", territorios[defensor].numTropas);
+
         // Verifica se o defensor perdeu o território
         if (territorios[defensor].numTropas == 0) {
-            printf("\n!!! %s foi conquistado por %s !!!\n", territorios[defensor].nome, territorios[atacante].nome);
+            printf("\n!!! %s foi conquistado pelo exército %s !!!\n", territorios[defensor].nome, territorios[atacante].corExercito);
             // Transferir o território para o atacante
             strcpy(territorios[defensor].corExercito, territorios[atacante].corExercito);
             territorios[defensor].numTropas = 1;  // Coloca 1 tropa do atacante no novo território conquistado
         }
     } else {
-        printf("\n>>> DEFENSOR VENCEU! <<<\n");
-        printf("%s mantém o controle de %s!\n", territorios[defensor].nome, territorios[defensor].nome);
+        printf("VITÓRIA DO DEFENSOR!!! O defensor mantém o controle da tropa!\n");
     }
     
-    printf("===========================\n\n");
-};// Função utilitária para limpar o buffer de entrada do teclado (stdin), evitando problemas com leituras consecutivas de scanf e getchar.
+    printf("===================================\n\n");
+
+    printf("Pressione Enter para ir para o próximo turno...");
+    getchar();
+};
+
+// Função utilitária para limpar o buffer de entrada do teclado (stdin), evitando problemas com leituras consecutivas de scanf e getchar.
 void limparBufferEntrada() {
   int c;
   while ((c = getchar()) != '\n' && c != EOF);
