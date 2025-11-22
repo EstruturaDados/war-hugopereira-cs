@@ -27,6 +27,7 @@
 #define TAM_NOME 30
 #define TAM_COR 10
 #define NUM_MISSOES 2
+#define TAM_DESCRICAO 100
 
 // --- Estrutura de Dados ---
 // Define a estrutura para um território, contendo seu nome, a cor do exército que o domina e o número de tropas.
@@ -35,6 +36,31 @@ struct Territorio {
     char corExercito[TAM_COR];
     int numTropas;
 };
+
+// Define as missões, utilizando enumeração para os tipos de missão.
+typedef enum {
+    CONQUISTAR_UM_TERRITORIO = 0,
+    CONQUISTAR_DOIS_TERRITORIOS = 1,
+    CONQUISTAR_TRES_TERRITORIOS = 2,
+    ELIMINAR_EXERCITO_VERMELHO = 3,
+    ELIMINAR_EXERCITO_AZUL = 4
+} TipoMIssao;
+
+// Define a estrutura Missão.
+typedef struct {
+    TipoMIssao tipo;
+    char descrissao[TAM_DESCRICAO];
+    int concluida;
+} Missao;
+
+// Define a estrutura do jogador
+typedef struct {
+    char corJogador[TAM_COR];
+    Missao missao;
+} Jogador;
+
+/*  --- PAREI AQUI!!! ---  */
+
 
 // --- Protótipos das Funções ---
 // Declarações antecipadas de todas as funções que serão usadas no programa.
