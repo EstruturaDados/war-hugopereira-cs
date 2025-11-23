@@ -71,7 +71,7 @@ void exibirMissao(const Jogador* jogador);
 
 // Lógica de Jogo
 void faseDeAtaque(Territorio* territorios, const Jogador* jogador);
-void simularAtaque(Territorio* territorios, int atacante, int defensor);
+void simularAtaque(Territorio* territorios, int atacante, int defensor, const char* cor);
 int verificarMissao(const Territorio* territorios, Jogador* jogador);
 
 // Utilitáias
@@ -190,8 +190,8 @@ void atribuirMissao(Jogador* jogador) {
     }
 };
 
+// Exibe listagem com os territórios cadastrados
 void exibirMapa(const Territorio* territorios) {
-    // Exibe listagem com os territórios cadastrados
     printf("\n========= MAPA DO MUNDO - ESTADO ATUAL =========\n");
     for (int i = 0; i < NUM_TERRITORIOS; i++) {
         printf("%d. %-15s (Exército: %-20s, Tropas: %d)\n", i + 1, territorios[i].nome, territorios[i].corExercito, territorios[i].numTropas);
@@ -208,52 +208,64 @@ void exibirMenu() {
 
 };
 
+void exibirMissao(const Jogador* jogador) {
+    printf("\n--- SUA MISSÃO (EXERCITO AMARELO) ---\n");
+    printf("%s\n", jogador->missao.descrissao);
+}
+
 // Gerencia a interface para a ação de ataque, solicitando ao jogador os territórios de origem e destino.
 void faseDeAtaque(Territorio* territorios, const Jogador* jogador) {
-    int territorioAtacante;
-    int territorioDefensor;
+    int atacante, defensor;
     printf("\n--- Fase de ataque ---\n");
     printf("Digite o território atacante (1 a 5, ou 0 para sair): ");
-    scanf("%d", &territorioAtacante);
+    scanf("%d", &atacante);
 
     limparBufferEntrada();
-
-    if (territorioAtacante == 0) {
-        free(territorios);
-        printf("Jogo encerrado e memória liberada. Até a próxima!\n");
-        exit(0);
-    }
     
     // Valida se o território atacante é válido
-    if (territorioAtacante < 1 || territorioAtacante > NUM_TERRITORIOS) {
-        printf("ERRO: Território atacante inválido!\n");
+    if (atacante < 1 || atacante > NUM_TERRITORIOS) {
+        printf("ERRO: Território inválido!\n");
+        return;
+    }
+
+    atacante--;
+
+    if (strcmp(territorios[atacante].corExercito, jogador->corJogador) != 0) {
+        printf("ERRO: Você só pode atacar a partir de territórios seus (%s)!\n", jogador->corJogador);
         return;
     }
     
     printf("Digite o território defensor (1 a 5): ");
-    scanf("%d", &territorioDefensor);
+    scanf("%d", &defensor);
     limparBufferEntrada();
-    
+        
     // Valida se o território defensor é válido
-    if (territorioDefensor < 1 || territorioDefensor > NUM_TERRITORIOS) {
+    if (defensor < 1 || defensor > NUM_TERRITORIOS) {
         printf("ERRO: Território defensor inválido!\n");
         return;
     }
+
+    // Impede que o atacante ataque seu próprio território
+    if (defensor == atacante) {
+        printf("Você está tentando atacar seu próprio território. Escolha outro território!\n");
+        return;
+    }
+
     
     // Valida se o atacante tem tropas
-    if (territorios[territorioAtacante - 1].numTropas == 0) {
+    if (territorios[atacante - 1].numTropas == 0) {
         printf("ERRO: O território atacante não tem tropas!\n");
         return;
     }
     
     // Chama a função para simular o ataque
-    simularAtaque(territorios, territorioAtacante - 1, territorioDefensor - 1);
+    simularAtaque(territorios, atacante, defensor, jogador->corJogador);
 };
 
 // Executa a lógica de uma batalha entre dois territórios.
 // Realiza validações, rola os dados, compara os resultados e atualiza o número de tropas.
 // Se um território for conquistado, atualiza seu dono e move uma tropa.
-void simularAtaque(Territorio* territorios, int atacante, int defensor) {
+void simularAtaque(Territorio* territorios, int atacante, int defensor, const char* cor) {
     // Gera números aleatórios para simular dados de batalha (1 a 6)
     int dadoAtaque = rand() % 6 + 1;
     int dadoDefesa = rand() % 6 + 1;
@@ -265,7 +277,7 @@ void simularAtaque(Territorio* territorios, int atacante, int defensor) {
     // Compara os dados
     if (dadoAtaque >= dadoDefesa) {
         territorios[defensor].numTropas--;
-        printf("VITÓRIA DO ATAQUE!!! O defensor perdeu 1 tropa. Tropas restantes: %d\n", territorios[defensor].numTropas);
+        printf("VITÓRIA DO ATACANTE!!! O defensor perdeu 1 tropa. Tropas restantes: %d\n", territorios[defensor].numTropas);
 
         // Verifica se o defensor perdeu o território
         if (territorios[defensor].numTropas == 0) {
@@ -275,7 +287,8 @@ void simularAtaque(Territorio* territorios, int atacante, int defensor) {
             territorios[defensor].numTropas = 1;  // Coloca 1 tropa do atacante no novo território conquistado
         }
     } else {
-        printf("VITÓRIA DO DEFENSOR!!! O defensor mantém o controle da tropa!\n");
+        territorios[atacante].numTropas--;
+        printf("VITÓRIA DO DEFENSOR!!! O atacante perdeu uma tropa. Tropas restantes: %d\n", territorios[atacante].numTropas);
     }
     
     printf("===================================\n\n");
