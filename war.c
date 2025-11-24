@@ -108,8 +108,8 @@ int main() {
     printf("===================================\n");
     printf("    BEM VINDO AO JOGO WAR!\n");
     printf("===================================\n");
-    printf("\nVocê comanda o exército %s\n, jogador.corJogador");
-    exibirMisaao(&jogador);
+    printf("\nVocê comanda o exército %s!\n", jogador.corJogador);
+    exibirMissao(&jogador);
 
     
     int opcao;
@@ -119,8 +119,8 @@ int main() {
         exibirMapa(territorios);
         exibirMenu();
         
-        printf("\nEscolha uma opção");
-        if (scanf("%d", opcao) !=1) {
+        printf("\nEscolha uma opção: ");
+        if (scanf("%d", &opcao) !=1) {
             limparBufferEntrada();
             printf("ERRO; Opção inválida!\n");
             continue;
@@ -245,6 +245,8 @@ void faseDeAtaque(Territorio* territorios, const Jogador* jogador) {
         return;
     }
 
+    defensor--;
+
     // Impede que o atacante ataque seu próprio território
     if (defensor == atacante) {
         printf("Você está tentando atacar seu próprio território. Escolha outro território!\n");
@@ -253,7 +255,7 @@ void faseDeAtaque(Territorio* territorios, const Jogador* jogador) {
 
     
     // Valida se o atacante tem tropas
-    if (territorios[atacante - 1].numTropas == 0) {
+    if (territorios[atacante].numTropas == 0) {
         printf("ERRO: O território atacante não tem tropas!\n");
         return;
     }
@@ -308,7 +310,7 @@ int verificarMissao(const Territorio* territorios, Jogador* jogador) {
             }
             break;
         case CONQUISTAR_TRES_TERRITORIOS:
-            if (contarTerritoriosPorCor(territorios, jogador->corJogador) >= 3) {
+            if (contarTerritoriosPorCor(territorios, jogador->corJogador) >= 4) {
                 missaoCumprida = 1;
             }
             break;            
